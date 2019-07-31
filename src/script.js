@@ -38,15 +38,22 @@
     insertStylesheet(localStorage[uniqueStorageId]);
   }
 
-  // Still initiate fetch() to avoid “Unused <link rel="preload">” warnings
-  fetch(fontStylesheet)
-    .then(function(response) {
-      return response.text();
-    })
-    .then(function(stylesheet) {
-      localStorage[uniqueStorageId] = stylesheet;
-      return stylesheet;
-    })
-    .then(insertStylesheet)
-    .catch(insertFallback);
+  // Still initiate http request to avoid “Unused <link rel="preload">” warnings
+  const xmlhttp = new XMLHttpRequest();
+
+  xmlhttp.onreadystatechange = function() {
+      if (xmlhttp.readyState === XMLHttpRequest.DONE) {
+          if (xmlhttp.status === 200) {
+              localStorage[uniqueStorageId] = xmlhttp.responseText;
+              insertStylesheet(xmlhttp.responseText);
+          }
+          else {
+              insertFallback();
+          }
+      }
+  };
+
+  xmlhttp.open("GET", fontStylesheet, true);
+  xmlhttp.send();
+
 })(window, document, localStorage);
